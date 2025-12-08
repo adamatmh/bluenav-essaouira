@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>BlueNav Essaouira – Aide à la décision pour pêcheurs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet (carte + GPS) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-alt: #020818;
+      --accent: #22d3ee;
+      --accent-soft: rgba(34, 211, 238, 0.12);
+      --accent-strong: rgba(34, 211, 238, 0.25);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #fb7185;
+      --success: #4ade80;
+      --warning: #facc15;
+      --border: #1f2937;
+      --card: #020617;
+      --shadow-soft: 0 20px 40px rgba(15, 23, 42, 0.9);
+      --radius-xl: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro",
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #0b1220 0, #020617 45%, #020617 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .app-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 0, #22d3ee, transparent 55%),
+        radial-gradient(circle at 70% 100%, #0ea5e9, transparent 55%);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
+    }
+
+    .logo span {
+      font-size: 22px;
+    }
+
+    .title-block h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .btn-primary {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(120deg, #06b6d4, #22c55e);
+      color: #0b1120;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 10px 25px rgba(8, 47, 73, 0.8);
+    }
+
+    .btn-primary span.icon {
+      font-size: 15px;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 360px) minmax(0, 1.2fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.8), #020617);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card + .card {
+      margin-top: 10px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title span.icon {
+      font-size: 16px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .kpi {
+      padding: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.08), transparent 55%);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .kpi-badge {
+      font-size: 10px;
+      margin-top: 2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: var(--muted);
+    }
+
+    .badge-green {
+      border-color: rgba(74, 222, 128, 0.6);
+      color: var(--success);
+    }
+
+    .badge-red {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: var(--danger);
+    }
+
+    .badge-yellow {
+      border-color: rgba(250, 204, 21, 0.6);
+      color: var(--warning);
+    }
+
+    .zones-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .zone-item {
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 8px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: radial-gradient(circle at right, rgba(34, 211, 238, 0.06), transparent 55%);
+    }
+
+    .zone-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .zone-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .zone-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .zone-score {
+      text-align: right;
+    }
+
+    .score-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .score-chip.best {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .score-value {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: #020617;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.5);
+    }
+
+    .btn-small {
+      margin-top: 6px;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-small-primary {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    /* Carte */
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .map-card {
+      position: relative;
+      padding: 12px;
+    }
+
+    .map-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .overlay-box {
+      pointer-events: auto;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      backdrop-filter: blur(10px);
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+    }
+
+    .dot-boat {
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+    }
+
+    .dot-zone {
+      background: rgba(34, 211, 238, 0.4);
+    }
+
+    .data-table-card {
+      margin-top: 6px;
+      padding-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    th,
+    td {
+      padding: 5px 4px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pill-soft {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-soft.green {
+      border-color: rgba(74, 222, 128, 0.7);
+      color: var(--success);
+    }
+
+    .pill-soft.red {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: var(--danger);
+    }
+
+    footer {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <span>🌊</span>
+        </div>
+        <div class="title-block">
+          <div class="pill">
+            Blue Economy Hack – Essaouira
+          </div>
+          <h1>
+            BlueNav Essaouira
+          </h1>
+          <p class="subtitle">
+            Plateforme d’aide à la décision pour la pêche artisanale – “Waze de la pêche” pour les barques souiries.
+          </p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="tag">Origine : Essaouira</div>
+        <div class="tag">Étudiant : FGSES – UM6P (Économie appliquée)</div>
+        <button class="btn-primary" id="simulateBtn">
+          <span class="icon">▶</span> Lancer la simulation d’une sortie
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+      <!-- COL GAUCHE : KPIs & recommandations -->
+      <div>
+        <!-- Conditions -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <span class="icon">📡</span>
+                Conditions & économie du jour
+              </div>
+              <div class="card-subtitle">
+                Données synthétiques pour démonstration – adaptables aux flux réels (API météo, port, GPS).
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi">
+              <div class="kpi-label">État de la mer</div>
+              <div class="kpi-value" id="seaState">Houle modérée (1.4 m)</div>
+              <div class="kpi-badge badge-yellow">
+                🌬 Vent 18 nœuds
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Prix du carburant</div>
+              <div class="kpi-value" id="fuelPrice">11.2 MAD / L</div>
+              <div class="kpi-badge">
+                ⛽ Estimation journalière
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Indice de rentabilité</div>
+              <div class="kpi-value" id="profitIndex">7.8 / 10</div>
+              <div class="kpi-badge badge-green">
+                ✅ Sortie recommandée
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommandations de zones -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <span class="icon">🧭</span>
+                Zones recommandées aujourd’hui
+              </div>
+              <div class="card-subtitle">
+                Calcul basé sur distance, rendement attendu, coût carburant & risque météo.
+              </div>
+            </div>
+          </div>
+
+          <div class="zones-list" id="zonesList">
+            <!-- Rempli par JS -->
+          </div>
+
+          <div class="form-row">
+            <label for="boatSpeed">Vitesse moyenne du bateau (nœuds)</label>
+            <input id="boatSpeed" type="number" min="3" max="15" value="7" />
+            <button class="btn-small btn-small-primary" id="recomputeBtn">
+              🔄 Recalculer les scores
+            </button>
+            <button class="btn-small" id="addZoneBtn">
+              ➕ Ajouter une zone sur la carte
+            </button>
+          </div>
+        </div>
+
+        <!-- Saisie de capture (demo) -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <span class="icon">📥</span>
+                Enregistrer une capture (données terrain)
+              </div>
+              <div class="card-subtitle">
+                Ces données alimentent les modèles économiques et les futures recommandations.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="zoneSelect">Zone de pêche</label>
+            <select id="zoneSelect"></select>
+          </div>
+
+          <div class="form-row">
+            <label for="speciesInput">Espèce (ex : Sardine)</label>
+            <input id="speciesInput" type="text" placeholder="Sardine, daurade, poulpe..." />
+          </div>
+
+          <div class="form-row">
+            <label for="quantityInput">Quantité (kg)</label>
+            <input id="quantityInput" type="number" min="0" step="1" />
+          </div>
+
+          <div class="form-row">
+            <label for="priceInput">Prix moyen (MAD/kg)</label>
+            <input id="priceInput" type="number" min="0" step="0.1" />
+          </div>
+
+          <button class="btn-small btn-small-primary" id="saveCatchBtn">
+            💾 Enregistrer la capture (demo)
+          </button>
+        </div>
+      </div>
+
+      <!-- COL DROITE : carte + historique -->
+      <div>
+        <div class="card map-card">
+          <div class="card-header" style="margin-bottom: 6px;">
+            <div>
+              <div class="card-title">
+                <span class="icon">🗺</span>
+                Carte en direct – port & zones de pêche
+              </div>
+              <div class="card-subtitle">
+                Carte réelle d’Essaouira (OpenStreetMap). Ajout interactif de zones de pêche.
+              </div>
+            </div>
+          </div>
+
+          <div class="map-overlay">
+            <div class="overlay-box">
+              <div class="legend-dot dot-boat"></div>
+              Bateau (GPS temps réel)
+              <span>•</span>
+              <div class="legend-dot dot-zone"></div>
+              Zones de pêche
+            </div>
+            <div class="overlay-box" id="overlayInfo">
+              Distance estimée : — km · Coût carburant : — MAD
+            </div>
+          </div>
+
+          <div id="map"></div>
+        </div>
+
+        <div class="card data-table-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <span class="icon">📊</span>
+                Dernières sorties (démo)
+              </div>
+              <div class="card-subtitle">
+                Historique synthétique pour illustrer l’impact de la plateforme sur rentabilité & temps en mer.
+              </div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Zone</th>
+                <th>Espèce</th>
+                <th>Captures (kg)</th>
+                <th>Revenu (MAD)</th>
+                <th>Temps en mer</th>
+                <th>Rentabilité</th>
+              </tr>
+            </thead>
+            <tbody id="tripsTableBody">
+              <!-- Rempli par JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>Prototype BlueNav Essaouira – Conçu pour le Blue Economy Hack 2025.</span>
+      <span>Carte réelle (OpenStreetMap) + zones de pêche interactives, prêtes à connecter à un vrai GPS.</span>
+    </footer>
+  </div>
+
+  <!-- LOGIQUE JS -->
+  <script>
+    // Coordonnées approximatives du port d’Essaouira
+    const ESSAOUIRA_PORT = [31.5133, -9.7696];
+
+    // Fonction pour calculer une distance (km) entre deux points (haversine)
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // rayon Terre km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function distanceFromPort(lat, lon) {
+      return distanceKm(ESSAOUIRA_PORT[0], ESSAOUIRA_PORT[1], lat, lon);
+    }
+
+    // Zones de pêche (coordonnées approximatives au large d’Essaouira)
+    let zones = [
+      {
+        id: "Z1",
+        name: "Banc Nord",
+        mapLatLng: [31.54, -9.78],
+        expectedYieldKg: 320,
+        riskLevel: 0.35,
+        priceMadPerKg: 12.5,
+      },
+      {
+        id: "Z2",
+        name: "Cap Sim (large)",
+        mapLatLng: [31.40, -9.87],
+        expectedYieldKg: 540,
+        riskLevel: 0.55,
+        priceMadPerKg: 13.8,
+      },
+      {
+        id: "Z3",
+        name: "Large Sud",
+        mapLatLng: [31.45, -9.90],
+        expectedYieldKg: 780,
+        riskLevel: 0.7,
+        priceMadPerKg: 11.9,
+      },
+      {
+        id: "Z4",
+        name: "Zone côtière Est",
+        mapLatLng: [31.52, -9.73],
+        expectedYieldKg: 180,
+        riskLevel: 0.2,
+        priceMadPerKg: 10.4,
+      },
+    ];
+
+    // Ajout des distances calculées à partir des coordonnées
+    zones = zones.map((z) => {
+      const d = distanceFromPort(z.mapLatLng[0], z.mapLatLng[1]);
+      return { ...z, distanceKm: Number(d.toFixed(1)) };
+    });
+
+    // Paramètres économiques simples
+    const ECON_PARAMS = {
+      fuelPriceMadPerL: 11.2, // affiché aussi dans l’UI
+      fuelConsumptionLPerHour: 9,
+      averageCatchCostFactor: 0.15, // coût "opérationnel" par kg
+    };
+
+    const simulatedTrips = [
+      {
+        zoneId: "Z1",
+        species: "Sardine",
+        qtyKg: 300,
+        pricePerKg: 12,
+        timeHours: 6,
+      },
+      {
+        zoneId: "Z4",
+        species: "Daurade",
+        qtyKg: 120,
+        pricePerKg: 35,
+        timeHours: 4,
+      },
+      {
+        zoneId: "Z2",
+        species: "Poulpe",
+        qtyKg: 260,
+        pricePerKg: 45,
+        timeHours: 7,
+      },
+    ];
+
+    // Calcul d’un score de rentabilité simple
+    function computeZoneScore(zone, boatSpeedKnots) {
+      const dist = zone.distanceKm * 2; // aller-retour
+      const speedKmH = boatSpeedKnots * 1.852;
+      const travelTimeHours = dist / speedKmH;
+
+      const fuelCost =
+        travelTimeHours * ECON_PARAMS.fuelConsumptionLPerHour * ECON_PARAMS.fuelPriceMadPerL;
+
+      const revenue = zone.expectedYieldKg * zone.priceMadPerKg;
+      const variableCosts = zone.expectedYieldKg * ECON_PARAMS.averageCatchCostFactor;
+      const riskPenalty = zone.riskLevel * 0.25 * revenue;
+
+      const profit = revenue - (fuelCost + variableCosts + riskPenalty);
+
+      const score = Math.max(
+        0,
+        Math.min(10, (profit / 10000) * 10)
+      );
+
+      return {
+        score: Number(score.toFixed(1)),
+        fuelCost: Number(fuelCost.toFixed(1)),
+        travelTimeHours: Number(travelTimeHours.toFixed(1)),
+        revenue: Number(revenue.toFixed(0)),
+        profit: Number(profit.toFixed(0)),
+      };
+    }
+
+    // Remplir la liste des zones (gauche)
+    function renderZones() {
+      const boatSpeed = Number(document.getElementById("boatSpeed").value) || 7;
+      const container = document.getElementById("zonesList");
+      container.innerHTML = "";
+
+      const scored = zones.map((z) => ({
+        ...z,
+        metrics: computeZoneScore(z, boatSpeed),
+      }));
+
+      scored.sort((a, b) => b.metrics.score - a.metrics.score);
+      const bestId = scored[0]?.id;
+
+      scored.forEach((z) => {
+        const div = document.createElement("div");
+        div.className = "zone-item";
+
+        const main = document.createElement("div");
+        main.className = "zone-main";
+        const name = document.createElement("div");
+        name.className = "zone-name";
+        name.textContent = `${z.name} (${z.distanceKm} km)`;
+
+        const meta = document.createElement("div");
+        meta.className = "zone-meta";
+        meta.textContent =
+          `Rendement attendu : ${z.metrics.revenue} MAD · Risque : ${(z.riskLevel * 100).toFixed(0)}%`;
+
+        main.appendChild(name);
+        main.appendChild(meta);
+
+        const scoreBlock = document.createElement("div");
+        scoreBlock.className = "zone-score";
+        const chip = document.createElement("div");
+        chip.className = "score-chip";
+        if (z.id === bestId) chip.classList.add("best");
+        chip.innerHTML = z.id === bestId ? "⭐ Meilleur compromis" : "Score";
+
+        const spanScore = document.createElement("span");
+        spanScore.textContent = ` ${z.metrics.score} / 10`;
+        chip.appendChild(spanScore);
+
+        const detail = document.createElement("div");
+        detail.className = "score-value";
+        detail.textContent =
+          `Carburant : ${z.metrics.fuelCost} MAD · Temps trajet : ${z.metrics.travelTimeHours} h`;
+
+        scoreBlock.appendChild(chip);
+        scoreBlock.appendChild(detail);
+
+        div.appendChild(main);
+        div.appendChild(scoreBlock);
+
+        container.appendChild(div);
+      });
+    }
+
+    // Tableau des sorties
+    function renderTrips() {
+      const tbody = document.getElementById("tripsTableBody");
+      tbody.innerHTML = "";
+
+      simulatedTrips.forEach((t) => {
+        const zone = zones.find((z) => z.id === t.zoneId);
+        const tr = document.createElement("tr");
+
+        const revenue = t.qtyKg * t.pricePerKg;
+        const operatingCost =
+          revenue * ECON_PARAMS.averageCatchCostFactor +
+          t.timeHours *
+          ECON_PARAMS.fuelConsumptionLPerHour *
+          ECON_PARAMS.fuelPriceMadPerL;
+        const profit = revenue - operatingCost;
+        const profitLabel = profit >= 0 ? "Rentable" : "Non rentable";
+
+        tr.innerHTML = `
+          <td>${zone ? zone.name : t.zoneId}</td>
+          <td>${t.species}</td>
+          <td>${t.qtyKg}</td>
+          <td>${revenue.toFixed(0)}</td>
+          <td>${t.timeHours.toFixed(1)} h</td>
+          <td>
+            <span class="pill-soft ${profit >= 0 ? "green" : "red"}">
+              ${profitLabel} (${profit.toFixed(0)} MAD)
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Remplir le select des zones
+    function populateZoneSelect() {
+      const select = document.getElementById("zoneSelect");
+      select.innerHTML = "";
+      zones.forEach((z) => {
+        const opt = document.createElement("option");
+        opt.value = z.id;
+        opt.textContent = z.name;
+        select.appendChild(opt);
+      });
+    }
+
+    // Enregistrer une capture (ajout au tableau de démo)
+    function setupCatchForm() {
+      const btn = document.getElementById("saveCatchBtn");
+      btn.addEventListener("click", () => {
+        const zoneId = document.getElementById("zoneSelect").value;
+        const species = document.getElementById("speciesInput").value || "Inconnue";
+        const qty = Number(document.getElementById("quantityInput").value) || 0;
+        const price = Number(document.getElementById("priceInput").value) || 0;
+
+        if (!zoneId || qty <= 0 || price <= 0) {
+          alert("Merci de renseigner au minimum la zone, une quantité et un prix moyen.");
+          return;
+        }
+
+        simulatedTrips.unshift({
+          zoneId,
+          species,
+          qtyKg: qty,
+          pricePerKg: price,
+          timeHours: 6, // valeur fixe démo
+        });
+
+        if (simulatedTrips.length > 8) simulatedTrips.pop();
+
+        renderTrips();
+
+        document.getElementById("speciesInput").value = "";
+        document.getElementById("quantityInput").value = "";
+        document.getElementById("priceInput").value = "";
+      });
+    }
+
+    // INITIALISATION CARTE
+    let map;
+    let boatMarker;
+    let boatSimInterval = null;
+    let addZoneMode = false;
+    const zoneCircles = {};
+
+    function initMap() {
+      map = L.map("map").setView(ESSAOUIRA_PORT, 11);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+      }).addTo(map);
+
+      // Port marker
+      L.circleMarker(ESSAOUIRA_PORT, {
+        radius: 6,
+        color: "#22d3ee",
+        fillColor: "#22d3ee",
+        fillOpacity: 0.9,
+      })
+        .addTo(map)
+        .bindPopup("Port d’Essaouira");
+
+      // Zones de pêche (cercles réels basés sur leurs coordonnées)
+      zones.forEach((z) => {
+        const circle = L.circle(z.mapLatLng, {
+          radius: 800, // mètres
+          color: "rgba(56, 189, 248, 0.7)",
+          fillColor: "rgba(56, 189, 248, 0.25)",
+          fillOpacity: 0.6,
+          weight: 1,
+        })
+          .addTo(map)
+          .bindPopup(
+            `<strong>${z.name}</strong><br>Distance ~ ${z.distanceKm} km<br>Rendement attendu : ${z.expectedYieldKg} kg`
+          );
+
+        circle.on("click", () => {
+          const select = document.getElementById("zoneSelect");
+          select.value = z.id;
+          circle.openPopup();
+        });
+
+        zoneCircles[z.id] = circle;
+      });
+
+      // Bateau (au port)
+      boatMarker = L.circleMarker(ESSAOUIRA_PORT, {
+        radius: 7,
+        color: "#22d3ee",
+        fillColor: "#22d3ee",
+        fillOpacity: 1,
+      })
+        .addTo(map)
+        .bindPopup("Bateau – position GPS (simulation)");
+
+      // Clic sur la carte pour ajouter une zone
+      map.on("click", (e) => {
+        if (!addZoneMode) return;
+
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        const zoneName = prompt("Nom de la nouvelle zone de pêche :", "Nouvelle zone");
+
+        if (!zoneName) {
+          alert("Zone annulée (aucun nom fourni).");
+          addZoneMode = false;
+          document.getElementById("addZoneBtn").textContent = "➕ Ajouter une zone sur la carte";
+          return;
+        }
+
+        const distance = distanceFromPort(lat, lng);
+        const newId = "Z" + (zones.length + 1);
+
+        const newZone = {
+          id: newId,
+          name: zoneName,
+          mapLatLng: [lat, lng],
+          distanceKm: Number(distance.toFixed(1)),
+          expectedYieldKg: 300,
+          riskLevel: 0.4,
+          priceMadPerKg: 12,
+        };
+
+        zones.push(newZone);
+
+        const circle = L.circle(newZone.mapLatLng, {
+          radius: 800,
+          color: "rgba(56, 189, 248, 0.7)",
+          fillColor: "rgba(56, 189, 248, 0.25)",
+          fillOpacity: 0.6,
+          weight: 1,
+        })
+          .addTo(map)
+          .bindPopup(
+            `<strong>${newZone.name}</strong><br>Distance ~ ${newZone.distanceKm} km<br>Rendement attendu : ${newZone.expectedYieldKg} kg`
+          );
+
+        circle.on("click", () => {
+          const select = document.getElementById("zoneSelect");
+          select.value = newZone.id;
+          circle.openPopup();
+        });
+
+        zoneCircles[newZone.id] = circle;
+
+        renderZones();
+        populateZoneSelect();
+
+        addZoneMode = false;
+        document.getElementById("addZoneBtn").textContent = "➕ Ajouter une zone sur la carte";
+        alert("Nouvelle zone de pêche ajoutée.");
+      });
+    }
+
+    function updateOverlayInfo(distanceKm, fuelCostMad) {
+      const el = document.getElementById("overlayInfo");
+      el.textContent =
+        `Distance estimée : ${distanceKm.toFixed(1)} km · Coût carburant : ${fuelCostMad.toFixed(0)} MAD`;
+    }
+
+    function simulateBoatTrip() {
+      if (!zones.length) return;
+      if (boatSimInterval) {
+        clearInterval(boatSimInterval);
+        boatSimInterval = null;
+      }
+
+      const boatSpeed = Number(document.getElementById("boatSpeed").value) || 7;
+
+      // Choisir la zone avec le meilleur score économique
+      const scored = zones.map((z) => ({
+        z,
+        metrics: computeZoneScore(z, boatSpeed),
+      })).sort((a, b) => b.metrics.score - a.metrics.score);
+
+      const target = scored[0];
+      if (!target) return;
+
+      const targetZone = target.z;
+
+      const start = ESSAOUIRA_PORT;
+      const end = targetZone.mapLatLng || ESSAOUIRA_PORT;
+
+      const steps = 80;
+      const path = [];
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const lat = start[0] + (end[0] - start[0]) * t;
+        const lng = start[1] + (end[1] - start[1]) * t;
+        path.push([lat, lng]);
+      }
+
+      const distanceKmTotal = targetZone.distanceKm * 2;
+      const travelTimeHours =
+        distanceKmTotal / (boatSpeed * 1.852);
+      const fuelCost =
+        travelTimeHours *
+        ECON_PARAMS.fuelConsumptionLPerHour *
+        ECON_PARAMS.fuelPriceMadPerL;
+
+      updateOverlayInfo(distanceKmTotal, fuelCost);
+
+      let index = 0;
+      boatSimInterval = setInterval(() => {
+        if (index >= path.length) {
+          clearInterval(boatSimInterval);
+          boatSimInterval = null;
+          return;
+        }
+        boatMarker.setLatLng(path[index]);
+        index++;
+      }, 120);
+    }
+
+    // LIENS UI
+    function bindUi() {
+      document
+        .getElementById("recomputeBtn")
+        .addEventListener("click", () => {
+          renderZones();
+        });
+
+      document
+        .getElementById("simulateBtn")
+        .addEventListener("click", simulateBoatTrip);
+
+      document
+        .getElementById("addZoneBtn")
+        .addEventListener("click", () => {
+          addZoneMode = !addZoneMode;
+          const btn = document.getElementById("addZoneBtn");
+          btn.textContent = addZoneMode
+            ? "🖱 Cliquer sur la carte pour ajouter"
+            : "➕ Ajouter une zone sur la carte";
+        });
+    }
+
+    // INIT GLOBALE
+    window.addEventListener("load", () => {
+      initMap();
+      renderZones();
+      renderTrips();
+      populateZoneSelect();
+      setupCatchForm();
+      bindUi();
+    });
+  </script>
+</body>
+</html>
