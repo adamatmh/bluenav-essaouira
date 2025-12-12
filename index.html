@@ -1,1166 +1,477 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>BlueNav Essaouira – Aide à la décision pour pêcheurs</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Leaflet (carte + GPS) -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <meta charset="utf-8" />
+  <title>BlueNav Essaouira — Plateforme complète</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    :root {
-      --bg: #020617;
-      --bg-alt: #020818;
-      --accent: #22d3ee;
-      --accent-soft: rgba(34, 211, 238, 0.12);
-      --accent-strong: rgba(34, 211, 238, 0.25);
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --danger: #fb7185;
-      --success: #4ade80;
-      --warning: #facc15;
-      --border: #1f2937;
-      --card: #020617;
-      --shadow-soft: 0 20px 40px rgba(15, 23, 42, 0.9);
-      --radius-xl: 22px;
+    :root{
+      --bg:#020617; --text:#e5e7eb; --muted:#9ca3af; --accent:#22d3ee;
+      --card:#071025; --radius:14px;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro",
-        "Segoe UI", sans-serif;
-    }
-
-    body {
-      background: radial-gradient(circle at top, #0b1220 0, #020617 45%, #020617 100%);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .app-shell {
-      max-width: 1320px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo {
-      width: 46px;
-      height: 46px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 30% 0, #22d3ee, transparent 55%),
-        radial-gradient(circle at 70% 100%, #0ea5e9, transparent 55%);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
-    }
-
-    .logo span {
-      font-size: 22px;
-    }
-
-    .title-block h1 {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .pill {
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      color: var(--muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(10px);
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .header-meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .tag {
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .btn-primary {
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(120deg, #06b6d4, #22c55e);
-      color: #0b1120;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 10px 25px rgba(8, 47, 73, 0.8);
-    }
-
-    .btn-primary span.icon {
-      font-size: 15px;
-    }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 360px) minmax(0, 1.2fr);
-      gap: 16px;
-    }
-
-    @media (max-width: 900px) {
-      .main-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card {
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.8), #020617);
-      border-radius: var(--radius-xl);
-      border: 1px solid var(--border);
-      padding: 14px 14px 16px;
-      box-shadow: var(--shadow-soft);
-    }
-
-    .card + .card {
-      margin-top: 10px;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title span.icon {
-      font-size: 16px;
-    }
-
-    .card-subtitle {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .kpi {
-      padding: 8px;
-      border-radius: 14px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.08), transparent 55%);
-    }
-
-    .kpi-label {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .kpi-value {
-      font-size: 15px;
-      font-weight: 600;
-      margin-top: 2px;
-    }
-
-    .kpi-badge {
-      font-size: 10px;
-      margin-top: 2px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      border-radius: 999px;
-      padding: 2px 7px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      color: var(--muted);
-    }
-
-    .badge-green {
-      border-color: rgba(74, 222, 128, 0.6);
-      color: var(--success);
-    }
-
-    .badge-red {
-      border-color: rgba(248, 113, 113, 0.7);
-      color: var(--danger);
-    }
-
-    .badge-yellow {
-      border-color: rgba(250, 204, 21, 0.6);
-      color: var(--warning);
-    }
-
-    .zones-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    .zone-item {
-      border-radius: 14px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      padding: 8px 9px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: radial-gradient(circle at right, rgba(34, 211, 238, 0.06), transparent 55%);
-    }
-
-    .zone-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .zone-name {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .zone-meta {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .zone-score {
-      text-align: right;
-    }
-
-    .score-chip {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .score-chip.best {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-    }
-
-    .score-value {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .form-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    label {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    select,
-    input {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      background: #020617;
-      color: var(--text);
-      font-size: 12px;
-      outline: none;
-    }
-
-    select:focus,
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.5);
-    }
-
-    .btn-small {
-      margin-top: 6px;
-      font-size: 11px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--muted);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn-small-primary {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    /* Carte */
-    #map {
-      width: 100%;
-      height: 420px;
-      border-radius: var(--radius-xl);
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-
-    .map-card {
-      position: relative;
-      padding: 12px;
-    }
-
-    .map-overlay {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
-      display: flex;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-
-    .overlay-box {
-      pointer-events: auto;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 11px;
-      background: rgba(15, 23, 42, 0.92);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
-      backdrop-filter: blur(10px);
-    }
-
-    .legend-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-    }
-
-    .dot-boat {
-      background: var(--accent);
-      box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
-    }
-
-    .dot-zone {
-      background: rgba(34, 211, 238, 0.4);
-    }
-
-    .data-table-card {
-      margin-top: 6px;
-      padding-top: 10px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      margin-top: 4px;
-    }
-
-    th,
-    td {
-      padding: 5px 4px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-    }
-
-    th {
-      text-align: left;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .pill-soft {
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 10px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .pill-soft.green {
-      border-color: rgba(74, 222, 128, 0.7);
-      color: var(--success);
-    }
-
-    .pill-soft.red {
-      border-color: rgba(248, 113, 113, 0.7);
-      color: var(--danger);
-    }
-
-    footer {
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-      opacity: 0.8;
-    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto; margin:0; background:linear-gradient(180deg,#071228 0,#020617 100%); color:var(--text); padding:18px;}
+    .wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:50px;height:50px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#22d3ee,#0ea5e9);box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+    nav{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:8px 12px;border-radius:999px;background:transparent;border:1px solid rgba(148,163,184,0.12);cursor:pointer;color:var(--muted)}
+    .tab.active{background:linear-gradient(90deg,#022f3d33,#06253366);border-color:var(--accent);color:var(--text)}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:14px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:var(--radius); padding:12px; border:1px solid rgba(255,255,255,0.03)}
+    #map{height:520px;border-radius:12px;border:1px solid rgba(255,255,255,0.04)}
+    .zones-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:260px;overflow:auto}
+    .zone-item{display:flex;justify-content:space-between;padding:8px;border-radius:10px;background:rgba(34,211,238,0.03);border:1px solid rgba(34,211,238,0.06)}
+    .btn{padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:var(--accent);color:#001; font-weight:600}
+    .small{padding:6px 8px;font-size:13px}
+    .market-list{display:flex;flex-direction:column;gap:8px}
+    .market-card{padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:rgba(255,255,255,0.01)}
+    .chat-box{position:fixed;right:20px;bottom:20px;width:360px;max-height:70vh;border-radius:12px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;background:#071126}
+    .chat-header{padding:10px 12px;background:linear-gradient(90deg,#022f3d,#052a3a);display:flex;align-items:center;gap:8px}
+    .messages{padding:12px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px}
+    .msg{padding:8px 10px;border-radius:10px;max-width:80%}
+    .msg.user{align-self:flex-end;background:linear-gradient(90deg,#06b6d4,#22c55e);color:#041217}
+    .msg.bot{align-self:flex-start;background:rgba(255,255,255,0.03)}
+    .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,0.02)}
+    .form-row{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+    label{font-size:13px;color:var(--muted)}
+    input,select,textarea{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text);outline:none}
+    .doc-actions{display:flex;gap:8px;flex-wrap:wrap}
+    footer{margin-top:8px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+    /* IA bubble button */
+    .ia-bubble{position:fixed;right:26px;bottom:26px;width:64px;height:64px;border-radius:999px;background:linear-gradient(90deg,#22d3ee,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;box-shadow:0 8px 30px rgba(34,211,238,0.14)}
   </style>
 </head>
-
 <body>
-  <div class="app-shell">
-    <!-- HEADER -->
+  <div class="wrap">
     <header>
       <div class="brand">
-        <div class="logo">
-          <span>🌊</span>
-        </div>
-        <div class="title-block">
-          <div class="pill">
-            Blue Economy Hack – Essaouira
-          </div>
-          <h1>
-            BlueNav Essaouira
-          </h1>
-          <p class="subtitle">
-            Plateforme d’aide à la décision pour la pêche artisanale – “Waze de la pêche” pour les barques souiries.
-          </p>
+        <div class="logo">🌊</div>
+        <div>
+          <div style="font-weight:700;font-size:18px">BlueNav Essaouira</div>
+          <div style="font-size:13px;color:var(--muted)">Waze de la pêche — Essaouira (port) • Prototype</div>
         </div>
       </div>
-      <div class="header-meta">
-        <div class="tag">Origine : Essaouira</div>
-        <div class="tag">Étudiant : FGSES – UM6P (Économie appliquée)</div>
-        <button class="btn-primary" id="simulateBtn">
-          <span class="icon">▶</span> Lancer la simulation d’une sortie
-        </button>
-      </div>
+
+      <nav id="tabs" aria-label="navigation">
+        <button class="tab active" data-tab="fisher">Pêche & Conditions</button>
+        <button class="tab" data-tab="market">Marché Virtuel</button>
+        <button class="tab" data-tab="assistant">Assistant IA</button>
+        <button class="tab" data-tab="docs">Documents & Fiche</button>
+      </nav>
     </header>
 
-    <!-- MAIN GRID -->
-    <div class="main-grid">
-      <!-- COL GAUCHE : KPIs & recommandations -->
+    <main class="grid">
+      <!-- LEFT COLUMN: Controls / KPIs -->
       <div>
-        <!-- Conditions -->
         <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">📡</span>
-                Conditions & économie du jour
-              </div>
-              <div class="card-subtitle">
-                Données synthétiques pour démonstration – adaptables aux flux réels (API météo, port, GPS).
-              </div>
-            </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>Paramètres de sortie</strong>
+            <button id="simulateBtn" class="btn small">Simuler sortie</button>
           </div>
 
-          <div class="kpi-row">
-            <div class="kpi">
-              <div class="kpi-label">État de la mer</div>
-              <div class="kpi-value" id="seaState">Houle modérée (1.4 m)</div>
-              <div class="kpi-badge badge-yellow">
-                🌬 Vent 18 nœuds
-              </div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Prix du carburant</div>
-              <div class="kpi-value" id="fuelPrice">11.2 MAD / L</div>
-              <div class="kpi-badge">
-                ⛽ Estimation journalière
-              </div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Indice de rentabilité</div>
-              <div class="kpi-value" id="profitIndex">7.8 / 10</div>
-              <div class="kpi-badge badge-green">
-                ✅ Sortie recommandée
-              </div>
+          <div class="form-row">
+            <label>Vitesse moyenne (nœuds)</label>
+            <input id="boatSpeed" type="number" value="7" min="3" max="15" />
+          </div>
+
+          <div class="form-row">
+            <label>Prix carburant (MAD/L)</label>
+            <input id="fuelPrice" type="number" value="11.2" step="0.1" />
+          </div>
+
+          <div class="form-row">
+            <label>Conditions météo (démo)</label>
+            <select id="seaCondition">
+              <option value="calme">Calme</option>
+              <option value="moderee" selected>Houle modérée</option>
+              <option value="forte">Houle forte</option>
+            </select>
+          </div>
+
+          <div style="margin-top:10px">
+            <strong>Zones recommandées</strong>
+            <div class="zones-list" id="zonesList"></div>
+          </div>
+        </div>
+
+        <!-- MARKETPLACE PREVIEW -->
+        <div class="card" id="marketCard" style="margin-top:12px;display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>Marché virtuel — Offres récentes</strong>
+            <button id="newOfferBtn" class="btn small">Nouvelle offre</button>
+          </div>
+          <div style="margin-top:8px" class="market-list" id="marketList"></div>
+        </div>
+
+        <!-- DOCS QUICK -->
+        <div class="card" id="docsCard" style="margin-top:12px;display:none">
+          <strong>Documents & Fiches</strong>
+          <p style="color:var(--muted);font-size:13px;margin-top:6px">Autorisation, fiche de capture et modèles prêts à télécharger / remplir.</p>
+
+          <div class="doc-actions" style="margin-top:8px">
+            <button id="downloadAuthBtn" class="btn small">Télécharger modèle autorisation</button>
+            <button id="downloadFicheBtn" class="btn small">Télécharger fiche capture</button>
+            <button id="uploadDocBtn" class="tab small">Uploader un document</button>
+            <input type="file" id="docFile" style="display:none" />
+          </div>
+
+          <div style="margin-top:10px">
+            <strong>Fiche rapide (remplir)</strong>
+            <div class="form-row">
+              <label>Zone</label><select id="zoneSelect"></select>
+              <label>Espèce</label><input id="speciesInput" placeholder="Sardine..." />
+              <label>Quantité (kg)</label><input id="qtyInput" type="number" />
+              <label>Prix (MAD/kg)</label><input id="priceInput" type="number" />
+              <button id="saveCatchBtn" class="btn small" style="margin-top:8px">Enregistrer</button>
             </div>
           </div>
         </div>
 
-        <!-- Recommandations de zones -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">🧭</span>
-                Zones recommandées aujourd’hui
-              </div>
-              <div class="card-subtitle">
-                Calcul basé sur distance, rendement attendu, coût carburant & risque météo.
-              </div>
-            </div>
-          </div>
-
-          <div class="zones-list" id="zonesList">
-            <!-- Rempli par JS -->
-          </div>
-
-          <div class="form-row">
-            <label for="boatSpeed">Vitesse moyenne du bateau (nœuds)</label>
-            <input id="boatSpeed" type="number" min="3" max="15" value="7" />
-            <button class="btn-small btn-small-primary" id="recomputeBtn">
-              🔄 Recalculer les scores
-            </button>
-            <button class="btn-small" id="addZoneBtn">
-              ➕ Ajouter une zone sur la carte
-            </button>
-          </div>
-        </div>
-
-        <!-- Saisie de capture (demo) -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">📥</span>
-                Enregistrer une capture (données terrain)
-              </div>
-              <div class="card-subtitle">
-                Ces données alimentent les modèles économiques et les futures recommandations.
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <label for="zoneSelect">Zone de pêche</label>
-            <select id="zoneSelect"></select>
-          </div>
-
-          <div class="form-row">
-            <label for="speciesInput">Espèce (ex : Sardine)</label>
-            <input id="speciesInput" type="text" placeholder="Sardine, daurade, poulpe..." />
-          </div>
-
-          <div class="form-row">
-            <label for="quantityInput">Quantité (kg)</label>
-            <input id="quantityInput" type="number" min="0" step="1" />
-          </div>
-
-          <div class="form-row">
-            <label for="priceInput">Prix moyen (MAD/kg)</label>
-            <input id="priceInput" type="number" min="0" step="0.1" />
-          </div>
-
-          <button class="btn-small btn-small-primary" id="saveCatchBtn">
-            💾 Enregistrer la capture (demo)
-          </button>
+        <!-- MARKET CHAT CONTAINER HIDDEN -->
+        <div id="marketChatContainer" style="display:none; margin-top:12px">
+          <!-- injected when needed -->
         </div>
       </div>
 
-      <!-- COL DROITE : carte + historique -->
+      <!-- RIGHT COLUMN: Map + domain-specific panels -->
       <div>
-        <div class="card map-card">
-          <div class="card-header" style="margin-bottom: 6px;">
-            <div>
-              <div class="card-title">
-                <span class="icon">🗺</span>
-                Carte en direct – port & zones de pêche
-              </div>
-              <div class="card-subtitle">
-                Carte réelle d’Essaouira (OpenStreetMap). Ajout interactif de zones de pêche.
-              </div>
-            </div>
+        <div class="card" id="mapCard">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong id="mapTitle">Carte & positions (Port d'Essaouira)</strong>
+            <div style="font-size:13px;color:var(--muted)">Source port: ANP — Port d'Essaouira</div>
           </div>
 
-          <div class="map-overlay">
-            <div class="overlay-box">
-              <div class="legend-dot dot-boat"></div>
-              Bateau (GPS temps réel)
-              <span>•</span>
-              <div class="legend-dot dot-zone"></div>
-              Zones de pêche
-            </div>
-            <div class="overlay-box" id="overlayInfo">
-              Distance estimée : — km · Coût carburant : — MAD
-            </div>
-          </div>
-
-          <div id="map"></div>
+          <div id="map" style="margin-top:10px"></div>
         </div>
 
-        <div class="card data-table-card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">📊</span>
-                Dernières sorties (démo)
-              </div>
-              <div class="card-subtitle">
-                Historique synthétique pour illustrer l’impact de la plateforme sur rentabilité & temps en mer.
-              </div>
+        <!-- FISHERIES DOMAIN DETAILS -->
+        <div class="card" id="fisherDomain" style="margin-top:12px">
+          <h3>Focus Pêche & Conditions</h3>
+          <p style="color:var(--muted)">Affiche météo, alertes, zones interdites, conseils de sécurité et estimation économique.</p>
+
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <div style="min-width:180px">
+              <strong>Météo (démo)</strong>
+              <div id="weatherBox" style="margin-top:6px;color:var(--muted)">Houle modérée · Vent 18 nd · Visibilité OK</div>
+            </div>
+
+            <div style="min-width:180px">
+              <strong>Conseil rapide</strong>
+              <div id="adviceBox" style="margin-top:6px;color:var(--muted)">Zone B recommandée — éviter zones à l'Est si vent > 20 nd.</div>
+            </div>
+
+            <div style="min-width:180px">
+              <strong>Risque</strong>
+              <div id="riskBox" style="margin-top:6px;color:#f59e0b">Risque modéré</div>
             </div>
           </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Zone</th>
-                <th>Espèce</th>
-                <th>Captures (kg)</th>
-                <th>Revenu (MAD)</th>
-                <th>Temps en mer</th>
-                <th>Rentabilité</th>
-              </tr>
-            </thead>
-            <tbody id="tripsTableBody">
-              <!-- Rempli par JS -->
-            </tbody>
-          </table>
         </div>
+
+        <!-- MARKETPLACE DOMAIN -->
+        <div class="card" id="marketDomain" style="margin-top:12px;display:none">
+          <h3>Marché virtuel — Acheteurs & Vendeurs</h3>
+          <p style="color:var(--muted)">Publie une offre (vente/achat), contacte instantanément un acheteur/vendeur via un chat dédié.</p>
+
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <div style="flex:1">
+              <label>Type</label>
+              <select id="offerType"><option value="sell">Vendre</option><option value="buy">Acheter</option></select>
+              <label>Espèce</label><input id="offerSpecies" />
+              <label>Quantité (kg)</label><input id="offerQty" type="number" />
+              <label>Prix (MAD/kg)</label><input id="offerPrice" type="number" />
+              <button id="postOfferBtn" class="btn small" style="margin-top:8px">Publier</button>
+            </div>
+
+            <div style="width:320px">
+              <strong>Offres récentes</strong>
+              <div id="offersList" style="margin-top:8px;max-height:200px;overflow:auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ASSISTANT DOMAIN -->
+        <div class="card" id="assistantDomain" style="margin-top:12px;display:none">
+          <h3>Assistant IA — Chat 24/7 (prototype)</h3>
+          <p style="color:var(--muted)">Pose une question : météo, coût carburant, autorisations, conseils sécurité.</p>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="assistantInput" placeholder="Ex : Est-ce que je peux sortir aujourd'hui ?" />
+            <button id="askAssistantBtn" class="btn small">Demander</button>
+          </div>
+          <div id="assistantAnswer" style="margin-top:10px;color:var(--muted)">Réponse de l'assistant ici...</div>
+        </div>
+
       </div>
-    </div>
+    </main>
 
     <footer>
-      <span>Prototype BlueNav Essaouira – Conçu pour le Blue Economy Hack 2025.</span>
-      <span>Carte réelle (OpenStreetMap) + zones de pêche interactives, prêtes à connecter à un vrai GPS.</span>
+      <div>Prototype BlueNav Essaouira • Intègre données portuaires (ANP Port d'Essaouira) et BMC projet. :contentReference[oaicite:2]{index=2} :contentReference[oaicite:3]{index=3}</div>
+      <div style="color:var(--muted)">Démonstration locale — prêt pour intégration API météo / GPS / backend</div>
     </footer>
   </div>
 
-  <!-- LOGIQUE JS -->
-  <script>
-    // Coordonnées approximatives du port d’Essaouira
-    const ESSAOUIRA_PORT = [31.5133, -9.7696];
-
-    // Fonction pour calculer une distance (km) entre deux points (haversine)
-    function distanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371; // rayon Terre km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    function distanceFromPort(lat, lon) {
-      return distanceKm(ESSAOUIRA_PORT[0], ESSAOUIRA_PORT[1], lat, lon);
-    }
-
-    // Zones de pêche (coordonnées approximatives au large d’Essaouira)
-    let zones = [
-      {
-        id: "Z1",
-        name: "Banc Nord",
-        mapLatLng: [31.54, -9.78],
-        expectedYieldKg: 320,
-        riskLevel: 0.35,
-        priceMadPerKg: 12.5,
-      },
-      {
-        id: "Z2",
-        name: "Cap Sim (large)",
-        mapLatLng: [31.40, -9.87],
-        expectedYieldKg: 540,
-        riskLevel: 0.55,
-        priceMadPerKg: 13.8,
-      },
-      {
-        id: "Z3",
-        name: "Large Sud",
-        mapLatLng: [31.45, -9.90],
-        expectedYieldKg: 780,
-        riskLevel: 0.7,
-        priceMadPerKg: 11.9,
-      },
-      {
-        id: "Z4",
-        name: "Zone côtière Est",
-        mapLatLng: [31.52, -9.73],
-        expectedYieldKg: 180,
-        riskLevel: 0.2,
-        priceMadPerKg: 10.4,
-      },
-    ];
-
-    // Ajout des distances calculées à partir des coordonnées
-    zones = zones.map((z) => {
-      const d = distanceFromPort(z.mapLatLng[0], z.mapLatLng[1]);
-      return { ...z, distanceKm: Number(d.toFixed(1)) };
-    });
-
-    // Paramètres économiques simples
-    const ECON_PARAMS = {
-      fuelPriceMadPerL: 11.2, // affiché aussi dans l’UI
-      fuelConsumptionLPerHour: 9,
-      averageCatchCostFactor: 0.15, // coût "opérationnel" par kg
-    };
-
-    const simulatedTrips = [
-      {
-        zoneId: "Z1",
-        species: "Sardine",
-        qtyKg: 300,
-        pricePerKg: 12,
-        timeHours: 6,
-      },
-      {
-        zoneId: "Z4",
-        species: "Daurade",
-        qtyKg: 120,
-        pricePerKg: 35,
-        timeHours: 4,
-      },
-      {
-        zoneId: "Z2",
-        species: "Poulpe",
-        qtyKg: 260,
-        pricePerKg: 45,
-        timeHours: 7,
-      },
-    ];
-
-    // Calcul d’un score de rentabilité simple
-    function computeZoneScore(zone, boatSpeedKnots) {
-      const dist = zone.distanceKm * 2; // aller-retour
-      const speedKmH = boatSpeedKnots * 1.852;
-      const travelTimeHours = dist / speedKmH;
-
-      const fuelCost =
-        travelTimeHours * ECON_PARAMS.fuelConsumptionLPerHour * ECON_PARAMS.fuelPriceMadPerL;
-
-      const revenue = zone.expectedYieldKg * zone.priceMadPerKg;
-      const variableCosts = zone.expectedYieldKg * ECON_PARAMS.averageCatchCostFactor;
-      const riskPenalty = zone.riskLevel * 0.25 * revenue;
-
-      const profit = revenue - (fuelCost + variableCosts + riskPenalty);
-
-      const score = Math.max(
-        0,
-        Math.min(10, (profit / 10000) * 10)
-      );
-
-      return {
-        score: Number(score.toFixed(1)),
-        fuelCost: Number(fuelCost.toFixed(1)),
-        travelTimeHours: Number(travelTimeHours.toFixed(1)),
-        revenue: Number(revenue.toFixed(0)),
-        profit: Number(profit.toFixed(0)),
-      };
-    }
-
-    // Remplir la liste des zones (gauche)
-    function renderZones() {
-      const boatSpeed = Number(document.getElementById("boatSpeed").value) || 7;
-      const container = document.getElementById("zonesList");
-      container.innerHTML = "";
-
-      const scored = zones.map((z) => ({
-        ...z,
-        metrics: computeZoneScore(z, boatSpeed),
-      }));
-
-      scored.sort((a, b) => b.metrics.score - a.metrics.score);
-      const bestId = scored[0]?.id;
-
-      scored.forEach((z) => {
-        const div = document.createElement("div");
-        div.className = "zone-item";
-
-        const main = document.createElement("div");
-        main.className = "zone-main";
-        const name = document.createElement("div");
-        name.className = "zone-name";
-        name.textContent = `${z.name} (${z.distanceKm} km)`;
-
-        const meta = document.createElement("div");
-        meta.className = "zone-meta";
-        meta.textContent =
-          `Rendement attendu : ${z.metrics.revenue} MAD · Risque : ${(z.riskLevel * 100).toFixed(0)}%`;
-
-        main.appendChild(name);
-        main.appendChild(meta);
-
-        const scoreBlock = document.createElement("div");
-        scoreBlock.className = "zone-score";
-        const chip = document.createElement("div");
-        chip.className = "score-chip";
-        if (z.id === bestId) chip.classList.add("best");
-        chip.innerHTML = z.id === bestId ? "⭐ Meilleur compromis" : "Score";
-
-        const spanScore = document.createElement("span");
-        spanScore.textContent = ` ${z.metrics.score} / 10`;
-        chip.appendChild(spanScore);
-
-        const detail = document.createElement("div");
-        detail.className = "score-value";
-        detail.textContent =
-          `Carburant : ${z.metrics.fuelCost} MAD · Temps trajet : ${z.metrics.travelTimeHours} h`;
-
-        scoreBlock.appendChild(chip);
-        scoreBlock.appendChild(detail);
-
-        div.appendChild(main);
-        div.appendChild(scoreBlock);
-
-        container.appendChild(div);
-      });
-    }
-
-    // Tableau des sorties
-    function renderTrips() {
-      const tbody = document.getElementById("tripsTableBody");
-      tbody.innerHTML = "";
-
-      simulatedTrips.forEach((t) => {
-        const zone = zones.find((z) => z.id === t.zoneId);
-        const tr = document.createElement("tr");
-
-        const revenue = t.qtyKg * t.pricePerKg;
-        const operatingCost =
-          revenue * ECON_PARAMS.averageCatchCostFactor +
-          t.timeHours *
-          ECON_PARAMS.fuelConsumptionLPerHour *
-          ECON_PARAMS.fuelPriceMadPerL;
-        const profit = revenue - operatingCost;
-        const profitLabel = profit >= 0 ? "Rentable" : "Non rentable";
-
-        tr.innerHTML = `
-          <td>${zone ? zone.name : t.zoneId}</td>
-          <td>${t.species}</td>
-          <td>${t.qtyKg}</td>
-          <td>${revenue.toFixed(0)}</td>
-          <td>${t.timeHours.toFixed(1)} h</td>
-          <td>
-            <span class="pill-soft ${profit >= 0 ? "green" : "red"}">
-              ${profitLabel} (${profit.toFixed(0)} MAD)
-            </span>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Remplir le select des zones
-    function populateZoneSelect() {
-      const select = document.getElementById("zoneSelect");
-      select.innerHTML = "";
-      zones.forEach((z) => {
-        const opt = document.createElement("option");
-        opt.value = z.id;
-        opt.textContent = z.name;
-        select.appendChild(opt);
-      });
-    }
-
-    // Enregistrer une capture (ajout au tableau de démo)
-    function setupCatchForm() {
-      const btn = document.getElementById("saveCatchBtn");
-      btn.addEventListener("click", () => {
-        const zoneId = document.getElementById("zoneSelect").value;
-        const species = document.getElementById("speciesInput").value || "Inconnue";
-        const qty = Number(document.getElementById("quantityInput").value) || 0;
-        const price = Number(document.getElementById("priceInput").value) || 0;
-
-        if (!zoneId || qty <= 0 || price <= 0) {
-          alert("Merci de renseigner au minimum la zone, une quantité et un prix moyen.");
-          return;
-        }
-
-        simulatedTrips.unshift({
-          zoneId,
-          species,
-          qtyKg: qty,
-          pricePerKg: price,
-          timeHours: 6, // valeur fixe démo
-        });
-
-        if (simulatedTrips.length > 8) simulatedTrips.pop();
-
-        renderTrips();
-
-        document.getElementById("speciesInput").value = "";
-        document.getElementById("quantityInput").value = "";
-        document.getElementById("priceInput").value = "";
-      });
-    }
-
-    // INITIALISATION CARTE
-    let map;
-    let boatMarker;
-    let boatSimInterval = null;
-    let addZoneMode = false;
-    const zoneCircles = {};
-
-    function initMap() {
-      map = L.map("map").setView(ESSAOUIRA_PORT, 11);
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 18,
-      }).addTo(map);
-
-      // Port marker
-      L.circleMarker(ESSAOUIRA_PORT, {
-        radius: 6,
-        color: "#22d3ee",
-        fillColor: "#22d3ee",
-        fillOpacity: 0.9,
-      })
-        .addTo(map)
-        .bindPopup("Port d’Essaouira");
-
-      // Zones de pêche (cercles réels basés sur leurs coordonnées)
-      zones.forEach((z) => {
-        const circle = L.circle(z.mapLatLng, {
-          radius: 800, // mètres
-          color: "rgba(56, 189, 248, 0.7)",
-          fillColor: "rgba(56, 189, 248, 0.25)",
-          fillOpacity: 0.6,
-          weight: 1,
-        })
-          .addTo(map)
-          .bindPopup(
-            `<strong>${z.name}</strong><br>Distance ~ ${z.distanceKm} km<br>Rendement attendu : ${z.expectedYieldKg} kg`
-          );
-
-        circle.on("click", () => {
-          const select = document.getElementById("zoneSelect");
-          select.value = z.id;
-          circle.openPopup();
-        });
-
-        zoneCircles[z.id] = circle;
-      });
-
-      // Bateau (au port)
-      boatMarker = L.circleMarker(ESSAOUIRA_PORT, {
-        radius: 7,
-        color: "#22d3ee",
-        fillColor: "#22d3ee",
-        fillOpacity: 1,
-      })
-        .addTo(map)
-        .bindPopup("Bateau – position GPS (simulation)");
-
-      // Clic sur la carte pour ajouter une zone
-      map.on("click", (e) => {
-        if (!addZoneMode) return;
-
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        const zoneName = prompt("Nom de la nouvelle zone de pêche :", "Nouvelle zone");
-
-        if (!zoneName) {
-          alert("Zone annulée (aucun nom fourni).");
-          addZoneMode = false;
-          document.getElementById("addZoneBtn").textContent = "➕ Ajouter une zone sur la carte";
-          return;
-        }
-
-        const distance = distanceFromPort(lat, lng);
-        const newId = "Z" + (zones.length + 1);
-
-        const newZone = {
-          id: newId,
-          name: zoneName,
-          mapLatLng: [lat, lng],
-          distanceKm: Number(distance.toFixed(1)),
-          expectedYieldKg: 300,
-          riskLevel: 0.4,
-          priceMadPerKg: 12,
-        };
-
-        zones.push(newZone);
-
-        const circle = L.circle(newZone.mapLatLng, {
-          radius: 800,
-          color: "rgba(56, 189, 248, 0.7)",
-          fillColor: "rgba(56, 189, 248, 0.25)",
-          fillOpacity: 0.6,
-          weight: 1,
-        })
-          .addTo(map)
-          .bindPopup(
-            `<strong>${newZone.name}</strong><br>Distance ~ ${newZone.distanceKm} km<br>Rendement attendu : ${newZone.expectedYieldKg} kg`
-          );
-
-        circle.on("click", () => {
-          const select = document.getElementById("zoneSelect");
-          select.value = newZone.id;
-          circle.openPopup();
-        });
-
-        zoneCircles[newZone.id] = circle;
-
-        renderZones();
-        populateZoneSelect();
-
-        addZoneMode = false;
-        document.getElementById("addZoneBtn").textContent = "➕ Ajouter une zone sur la carte";
-        alert("Nouvelle zone de pêche ajoutée.");
-      });
-    }
-
-    function updateOverlayInfo(distanceKm, fuelCostMad) {
-      const el = document.getElementById("overlayInfo");
-      el.textContent =
-        `Distance estimée : ${distanceKm.toFixed(1)} km · Coût carburant : ${fuelCostMad.toFixed(0)} MAD`;
-    }
-
-    function simulateBoatTrip() {
-      if (!zones.length) return;
-      if (boatSimInterval) {
-        clearInterval(boatSimInterval);
-        boatSimInterval = null;
-      }
-
-      const boatSpeed = Number(document.getElementById("boatSpeed").value) || 7;
-
-      // Choisir la zone avec le meilleur score économique
-      const scored = zones.map((z) => ({
-        z,
-        metrics: computeZoneScore(z, boatSpeed),
-      })).sort((a, b) => b.metrics.score - a.metrics.score);
-
-      const target = scored[0];
-      if (!target) return;
-
-      const targetZone = target.z;
-
-      const start = ESSAOUIRA_PORT;
-      const end = targetZone.mapLatLng || ESSAOUIRA_PORT;
-
-      const steps = 80;
-      const path = [];
-      for (let i = 0; i <= steps; i++) {
-        const t = i / steps;
-        const lat = start[0] + (end[0] - start[0]) * t;
-        const lng = start[1] + (end[1] - start[1]) * t;
-        path.push([lat, lng]);
-      }
-
-      const distanceKmTotal = targetZone.distanceKm * 2;
-      const travelTimeHours =
-        distanceKmTotal / (boatSpeed * 1.852);
-      const fuelCost =
-        travelTimeHours *
-        ECON_PARAMS.fuelConsumptionLPerHour *
-        ECON_PARAMS.fuelPriceMadPerL;
-
-      updateOverlayInfo(distanceKmTotal, fuelCost);
-
-      let index = 0;
-      boatSimInterval = setInterval(() => {
-        if (index >= path.length) {
-          clearInterval(boatSimInterval);
-          boatSimInterval = null;
-          return;
-        }
-        boatMarker.setLatLng(path[index]);
-        index++;
-      }, 120);
-    }
-
-    // LIENS UI
-    function bindUi() {
-      document
-        .getElementById("recomputeBtn")
-        .addEventListener("click", () => {
-          renderZones();
-        });
-
-      document
-        .getElementById("simulateBtn")
-        .addEventListener("click", simulateBoatTrip);
-
-      document
-        .getElementById("addZoneBtn")
-        .addEventListener("click", () => {
-          addZoneMode = !addZoneMode;
-          const btn = document.getElementById("addZoneBtn");
-          btn.textContent = addZoneMode
-            ? "🖱 Cliquer sur la carte pour ajouter"
-            : "➕ Ajouter une zone sur la carte";
-        });
-    }
-
-    // INIT GLOBALE
-    window.addEventListener("load", () => {
-      initMap();
-      renderZones();
-      renderTrips();
-      populateZoneSelect();
-      setupCatchForm();
-      bindUi();
-    });
-  </script>
+  <!-- IA bubble (opens chat window) -->
+  <div class="ia-bubble" id="iaBubble" title="Assistant BlueNav">🤖</div>
+
+  <!-- Chat box (hidden by default) -->
+  <div id="chatBox" class="chat-box" style="display:none">
+    <div class="chat-header"><strong>Assistant BlueNav</strong><div style="margin-left:auto;color:var(--muted);font-size:13px">24/7</div></div>
+    <div class="messages" id="messages"></div>
+    <div class="chat-input">
+      <input id="chatInput" style="flex:1;border-radius:8px;padding:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--text)"/>
+      <button id="sendChatBtn" class="btn small">Envoyer</button>
+    </div>
+  </div>
+
+<script>
+/* ===========================
+   Données & paramètres init
+   =========================== */
+const ESSAOUIRA_PORT = [31.5133, -9.7696]; // coordonnées port (ANP)
+let zones = [
+  { id:'Z1', name:'Banc Nord', lat:31.54, lng:-9.78, expectedYieldKg:320, risk:0.35, price:12.5 },
+  { id:'Z2', name:'Cap Sim (large)', lat:31.40, lng:-9.87, expectedYieldKg:540, risk:0.55, price:13.8 },
+  { id:'Z3', name:'Large Sud', lat:31.45, lng:-9.90, expectedYieldKg:780, risk:0.7, price:11.9 },
+  { id:'Z4', name:'Zone côtière Est', lat:31.52, lng:-9.73, expectedYieldKg:180, risk:0.2, price:10.4 }
+];
+
+const ECON = { fuelConsumptionLPerHour:9, averageCostFactor:0.15 };
+
+/* ===========================
+   Utils : distance (haversine)
+   =========================== */
+function distanceKm(lat1,lon1,lat2,lon2){
+  const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+/* ===========================
+   Map init
+   =========================== */
+let map = L.map('map').setView(ESSAOUIRA_PORT, 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+L.circleMarker(ESSAOUIRA_PORT,{radius:6,color:'#22d3ee',fillColor:'#22d3ee',fillOpacity:0.9}).addTo(map).bindPopup("Port d'Essaouira (ANP)");
+
+const zoneCircles = {};
+function drawZones(){
+  zones.forEach(z=>{
+    if(zoneCircles[z.id]) return;
+    const circle = L.circle([z.lat,z.lng],{radius:800,color:'rgba(56,189,248,0.7)',fillColor:'rgba(56,189,248,0.18)',fillOpacity:0.6}).addTo(map)
+      .bindPopup(`<strong>${z.name}</strong><br>Distance ~ ${distanceKm(ESSAOUIRA_PORT[0],ESSAOUIRA_PORT[1],z.lat,z.lng).toFixed(1)} km<br>Rendement espéré : ${z.expectedYieldKg} kg`);
+    circle.on('click',()=>{ document.getElementById('zoneSelect').value = z.id; circle.openPopup() });
+    zoneCircles[z.id]=circle;
+  });
+}
+drawZones();
+
+/* ===========================
+   Zone scoring & UI render
+   =========================== */
+function computeScore(z, boatSpeed, fuelPrice){
+  const dist = distanceKm(ESSAOUIRA_PORT[0],ESSAOUIRA_PORT[1],z.lat,z.lng)*2;
+  const speedKmH = boatSpeed * 1.852;
+  const travelTime = dist / speedKmH;
+  const fuelCost = travelTime * ECON.fuelConsumptionLPerHour * fuelPrice;
+  const revenue = z.expectedYieldKg * z.price;
+  const variableCosts = z.expectedYieldKg * ECON.averageCostFactor;
+  const riskPenalty = z.risk * 0.25 * revenue;
+  const profit = revenue - (fuelCost + variableCosts + riskPenalty);
+  const score = Math.max(0, Math.min(10, (profit/10000)*10));
+  return {score: Number(score.toFixed(1)), fuelCost: Number(fuelCost.toFixed(1)), travelTime: Number(travelTime.toFixed(1)), revenue:Math.round(revenue), profit:Math.round(profit)};
+}
+
+function renderZonesList(){
+  const container = document.getElementById('zonesList'); container.innerHTML='';
+  const boatSpeed = Number(document.getElementById('boatSpeed').value);
+  const fuelPrice = Number(document.getElementById('fuelPrice').value);
+  const scored = zones.map(z=>({z,metrics:computeScore(z,boatSpeed,fuelPrice)})).sort((a,b)=>b.metrics.score-a.metrics.score);
+  scored.forEach(s=>{
+    const el = document.createElement('div'); el.className='zone-item';
+    el.innerHTML = `<div><div style="font-weight:600">${s.z.name} (${distanceKm(ESSAOUIRA_PORT[0],ESSAOUIRA_PORT[1],s.z.lat,s.z.lng).toFixed(1)} km)</div>
+      <div style="color:var(--muted);font-size:13px">Rendement: ${s.metrics.revenue} MAD · Risque: ${(s.z.risk*100).toFixed(0)}%</div></div>
+      <div style="text-align:right"><div style="font-weight:700">${s.metrics.score}/10</div><div style="color:var(--muted);font-size:13px">Carb: ${s.metrics.fuelCost} MAD</div></div>`;
+    container.appendChild(el);
+  });
+}
+
+/* ===========================
+   Populate selects and trips
+   =========================== */
+function populateZoneSelect(){
+  const sel = document.getElementById('zoneSelect'); sel.innerHTML='';
+  zones.forEach(z=>{ const o=document.createElement('option'); o.value=z.id; o.textContent=z.name; sel.appendChild(o) });
+}
+populateZoneSelect();
+renderZonesList();
+
+/* ===========================
+   MAP add zone on click (via ctrl+click)
+   =========================== */
+map.on('click', function(e){
+  if(!window.addZoneMode) return;
+  const lat=e.latlng.lat, lng=e.latlng.lng;
+  const name = prompt('Nom de la nouvelle zone:','Nouvelle zone');
+  if(!name) { alert('Annulé'); window.addZoneMode=false; document.getElementById('addZoneBtn') && (document.getElementById('addZoneBtn').textContent='Ajouter zone'); return; }
+  const newId = 'Z' + (zones.length+1);
+  const newZone={id:newId,name,lat,lng,expectedYieldKg:300,risk:0.4,price:12};
+  zones.push(newZone);
+  const circle=L.circle([lat,lng],{radius:800,color:'rgba(56,189,248,0.7)',fillColor:'rgba(56,189,248,0.18)',fillOpacity:0.6}).addTo(map).bindPopup(`<strong>${name}</strong>`);
+  circle.on('click',()=>{document.getElementById('zoneSelect').value=newId;circle.openPopup()});
+  zoneCircles[newId]=circle;
+  populateZoneSelect(); renderZonesList();
+  window.addZoneMode=false;
+  alert('Zone ajoutée');
+});
+
+/* ===========================
+   Tabs logic
+   =========================== */
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(t=>t.addEventListener('click', (ev)=>{
+  tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+  const tab=t.getAttribute('data-tab');
+  // show/hide panels
+  document.getElementById('marketCard').style.display = tab==='market'?'block':'none';
+  document.getElementById('docsCard').style.display = tab==='docs'?'block':'none';
+  document.getElementById('marketDomain').style.display = tab==='market'?'block':'none';
+  document.getElementById('assistantDomain').style.display = tab==='assistant'?'block':'none';
+  // fisher visible always (we keep it)
+}));
+
+/* ===========================
+   Simulation button
+   =========================== */
+document.getElementById('simulateBtn').addEventListener('click', ()=> {
+  renderZonesList();
+  alert('Simulation lancée — voir zones recommandées');
+});
+
+/* ===========================
+   Marketplace (local prototype)
+   =========================== */
+let offers = [
+  {id:1,type:'sell',species:'Sardine',qty:200,price:12,owner:'Pêcheur A'},
+  {id:2,type:'buy',species:'Daurade',qty:50,price:30,owner:'Acheteur B'}
+];
+
+function renderOffers(){
+  const list = document.getElementById('offersList'); list.innerHTML='';
+  offers.slice().reverse().forEach(o=>{
+    const div=document.createElement('div'); div.className='market-card';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between"><div><strong>${o.type==='sell'?'VEND':'ACHETE'} ${o.species}</strong><div style="color:var(--muted);font-size:13px">${o.qty} kg • ${o.price} MAD/kg</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><button class="tab small" onclick="openMarketChat(${o.id})">Contacter</button></div></div>`;
+    list.appendChild(div);
+  });
+  // also feed left panel list
+  const marketList = document.getElementById('marketList'); if(marketList){ marketList.innerHTML=''; offers.slice().reverse().forEach(o=>{
+    const el=document.createElement('div'); el.className='market-card'; el.textContent = `${o.owner} • ${o.type==='sell'?'VEND':'ACHETE'} ${o.species} • ${o.qty}kg • ${o.price} MAD/kg`; marketList.appendChild(el);
+  }) }
+}
+renderOffers();
+
+document.getElementById('postOfferBtn').addEventListener('click', ()=>{
+  const type = document.getElementById('offerType').value;
+  const sp = document.getElementById('offerSpecies').value || 'Inconnue';
+  const qty = Number(document.getElementById('offerQty').value) || 0;
+  const price = Number(document.getElementById('offerPrice').value) || 0;
+  if(qty<=0||price<=0){ alert('Quantité et prix requis'); return; }
+  const id = offers.length?offers[offers.length-1].id+1:1;
+  offers.push({id,type,species:sp,qty,price,owner:'Utilisateur'});
+  renderOffers();
+  alert('Offre publiée (prototype local)');
+});
+
+/* Simple market chat (opens a simulated chat window) */
+function openMarketChat(offerId){
+  const offer = offers.find(o=>o.id===offerId);
+  if(!offer){ alert('Offre introuvable'); return; }
+  const kont = document.getElementById('marketChatContainer');
+  kont.innerHTML = `<div class="card"><strong>Chat marché — ${offer.type==='sell'?'Vente':'Achat'} ${offer.species}</strong>
+    <div style="margin-top:8px"><div id="mcMessages" style="max-height:200px;overflow:auto;border-radius:8px;padding:8px;background:rgba(255,255,255,0.02)"></div>
+    <div style="display:flex;gap:8px;margin-top:8px"><input id="mcInput" style="flex:1"/><button id="mcSend" class="btn small">Envoyer</button></div></div></div>`;
+  kont.style.display='block';
+  const mcSend = document.getElementById('mcSend');
+  mcSend.onclick = ()=>{ const t=document.getElementById('mcInput').value; if(!t) return; const m=document.getElementById('mcMessages'); m.innerHTML += `<div style="text-align:right;color:var(--muted)"><strong>Vous:</strong> ${t}</div>`; document.getElementById('mcInput').value=''; setTimeout(()=>{ m.innerHTML += `<div style="color:var(--muted)"><strong>${offer.owner}:</strong> Merci, intéressé. On se retrouve au port.</div>`; m.scrollTop = m.scrollHeight; },800) };
+}
+
+/* ===========================
+   Documents download / upload
+   =========================== */
+document.getElementById('downloadAuthBtn').addEventListener('click', ()=>{
+  const text = `MODELE - Autorisation sortie pêche\n\nNom du pêcheur:\nCoopérative:\nDate:\nZone autorisée:\nSignature:`;
+  const blob = new Blob([text],{type:'text/plain'}); const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='autorisation_modele.txt'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('downloadFicheBtn').addEventListener('click', ()=>{
+  const text = `FICHE CAPTURE\n\nDate:\nZone:\nEspèce:\nQuantité (kg):\nPrix moyen (MAD/kg):\nTemps en mer (h):\nObservations:`;
+  const blob=new Blob([text],{type:'text/plain'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='fiche_capture.txt'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('uploadDocBtn').addEventListener('click', ()=> document.getElementById('docFile').click());
+document.getElementById('docFile').addEventListener('change', (e)=>{ if(e.target.files.length){ alert('Document uploadé (prototype local) : ' + e.target.files[0].name) } });
+
+/* ===========================
+   Save catch (local)
+   =========================== */
+const trips = [];
+document.getElementById('saveCatchBtn').addEventListener('click', ()=>{
+  const zoneId = document.getElementById('zoneSelect').value;
+  const sp = document.getElementById('speciesInput').value || 'Inconnue';
+  const qty = Number(document.getElementById('qtyInput').value) || 0;
+  const price = Number(document.getElementById('priceInput').value) || 0;
+  if(!zoneId||qty<=0||price<=0){ alert('Remplir zone, quantité et prix'); return; }
+  trips.push({zoneId,sp,qty,price,date: new Date().toISOString()});
+  alert('Fiche enregistrée (local prototype)');
+  // reset
+  document.getElementById('speciesInput').value=''; document.getElementById('qtyInput').value=''; document.getElementById('priceInput').value='';
+});
+
+/* ===========================
+   Assistant IA (prototype local)
+   =========================== */
+function botRespond(msg){
+  const m = msg.toLowerCase();
+  if(m.includes('météo')||m.includes('vent')||m.includes('houle')) return "Aujourd'hui : houle modérée, vent ~18 nd. Éviter sorties longues si vent > 20 nd.";
+  if(m.includes('carburant')||m.includes('coût')) return "Estimation carburant: utilisez la fonction de simulation pour estimer le coût selon la zone et la vitesse.";
+  if(m.includes('autorisation')||m.includes('papier')) return "Vous pouvez télécharger un modèle d'autorisation dans l'onglet Documents, le remplir et le soumettre à la coopérative.";
+  if(m.includes('sécurité')||m.includes('danger')) return "Conseil: ne partez pas en cas de houle forte; privilégiez sorties tôt le matin quand la mer est plus calme.";
+  if(m.includes('comment')||m.includes('comment faire')) return "Enregistrez vos captures via la fiche, partagez avec la coopérative et utilisez le marché pour vendre localement.";
+  return "Désolé, je n'ai pas la réponse complète ici. Demandez 'météo', 'carburant', 'autorisation' ou 'sécurité'.";
+}
+
+document.getElementById('askAssistantBtn').addEventListener('click', ()=>{
+  const q = document.getElementById('assistantInput').value || '';
+  if(!q) return alert('Pose une question');
+  document.getElementById('assistantAnswer').textContent = '... réflexion ...';
+  setTimeout(()=>{ document.getElementById('assistantAnswer').textContent = botRespond(q); },600);
+});
+
+/* Chat bubble controls */
+const iaBubble = document.getElementById('iaBubble'), chatBox = document.getElementById('chatBox');
+iaBubble.addEventListener('click', ()=>{ chatBox.style.display = chatBox.style.display==='none'?'flex':'none'; });
+document.getElementById('sendChatBtn').addEventListener('click', ()=>{
+  const t = document.getElementById('chatInput').value.trim(); if(!t) return;
+  const msgs = document.getElementById('messages');
+  const userMsg = document.createElement('div'); userMsg.className='msg user'; userMsg.textContent = t; msgs.appendChild(userMsg);
+  document.getElementById('chatInput').value='';
+  setTimeout(()=>{ const botMsg=document.createElement('div'); botMsg.className='msg bot'; botMsg.textContent = botRespond(t); msgs.appendChild(botMsg); msgs.scrollTop = msgs.scrollHeight; },700);
+});
+
+/* ===========================
+   UI small binds
+   =========================== */
+document.getElementById('recomputeBtn')?.addEventListener('click', renderZonesList);
+document.getElementById('simulateBtn')?.addEventListener('click', renderZonesList);
+document.getElementById('newOfferBtn')?.addEventListener('click', ()=> { document.getElementById('offerType').value='sell'; document.getElementById('offerSpecies').value='Sardine'; document.getElementById('offerQty').value=100; document.getElementById('offerPrice').value=12; document.querySelector('.tab[data-tab="market"]').click(); });
+renderZonesList(); renderOffers();
+
+</script>
 </body>
 </html>
